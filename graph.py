@@ -114,17 +114,20 @@ def getAdjCombinationOf2(graph, hubNode):
 number_of_vertices = 0
 edges = [('1', '2'), ('1', '3'), ('1', '4'), ('2', '3'), ('2', '4'), ('3', '4'), ('4', '5'), ('4' ,'6'), ('4', '7'), ('5', '6'), ('7', '8'), ('7','9'), ('8', '9')]
 graph = project(edges)
+print('\nThe nodes with their neighbours are: \n')
 print(graph)
 
 matrix = createAdjacencyMatrix(graph)
+print('\nThe corresponding adjacency matrix is: \n')
 for entry in range(0, len(matrix)):
     print(matrix[entry])
 
 edgeIdMx = createEdgeIdMatrix(matrix)
+print('\nThe edge ID adjacency matrix is: \n')
 for entry in range(0, len(edgeIdMx)):
     print(edgeIdMx[entry])
 
 line_graph = createLineGraph(graph, matrix, edgeIdMx)
-
+print('\nThe line graph adjacency matrix with weights as similarity is: \n')
 for entry in range(0, len(line_graph)):
     print(line_graph[entry])
