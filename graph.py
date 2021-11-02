@@ -1,10 +1,12 @@
 from collections import defaultdict
+import argparse
 
-def project(edges, nodeType=int):
+def project(edges, filename, delimiter=' ', nodeType=int):
     graph = defaultdict(list)
-    for edge in edges:
-        graph[edge[0]].append(edge[1])
-        graph[edge[1]].append(edge[0])
+    for line in open(filename, 'U'):
+        L = line.strip().split(delimiter)
+        graph[L[0]].append(L[1])
+        graph[L[1]].append(L[0])
 
     return sorted(graph.items())
 
@@ -110,12 +112,19 @@ def getAdjCombinationOf2(graph, hubNode):
             break
     return result
 
+parser = argparse.ArgumentParser()
+parser.add_argument(dest='filename', help="Filename of the dataset containing the graph")
+
+# Parse and print the results
+filename = parser.parse_args().filename
+print(filename)
 
 number_of_vertices = 0
-edges = [('1', '2'), ('1', '3'), ('1', '4'), ('2', '3'), ('2', '4'), ('3', '4'), ('4', '5'), ('4' ,'6'), ('4', '7'), ('5', '6'), ('7', '8'), ('7','9'), ('8', '9')]
-graph = project(edges)
+
+graph = project(filename)
 print('\nThe nodes with their neighbours are: \n')
-print(graph)
+for node in graph:
+    print("%s -> %s" % (node[0], node[1]))
 
 matrix = createAdjacencyMatrix(graph)
 print('\nThe corresponding adjacency matrix is: \n')
