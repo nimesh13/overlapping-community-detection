@@ -1,7 +1,7 @@
 from collections import defaultdict
 import argparse
 
-def project(edges, filename, delimiter=' ', nodeType=int):
+def project(filename, delimiter=' ', nodeType=int):
     graph = defaultdict(list)
     for line in open(filename, 'U'):
         L = line.strip().split(delimiter)
@@ -117,7 +117,7 @@ parser.add_argument(dest='filename', help="Filename of the dataset containing th
 
 # Parse and print the results
 filename = parser.parse_args().filename
-print(filename)
+# print(filename)
 
 number_of_vertices = 0
 
