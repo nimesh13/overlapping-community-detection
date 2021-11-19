@@ -1,5 +1,10 @@
 from collections import defaultdict
 import argparse
+import community as community_louvain
+import networkx as nx
+import numpy as py
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 
 def project(filename, delimiter=' ', nodeType=int):
     graph = defaultdict(list)
@@ -46,7 +51,7 @@ def createLineGraph(graph, matrix, edgeIdMatrix):
             if matrix[i][j] == 1:
                 num_lines += 1
 
-    line_graph = [[-1] * num_lines for i in range(num_lines)]
+    line_graph = [[0] * num_lines for i in range(num_lines)]
 
     for i in range(0, num_nodes):
         nodeHub = i + 1
@@ -140,3 +145,25 @@ line_graph = createLineGraph(graph, matrix, edgeIdMx)
 print('\nThe line graph adjacency matrix with weights as similarity is: \n')
 for entry in range(0, len(line_graph)):
     print(line_graph[entry])
+
+# print(line_graph)
+G = nx.Graph(py.matrix(line_graph))
+print('************')
+# print(G)
+
+K = community_louvain.best_partition(G, weight='weight')
+modularity2 = community_louvain .modularity(K, G, weight='weight')
+print("The modularity Q based on networkx is {}".format(modularity2))
+
+print('---------------')
+print(K)
+
+pos = nx.spring_layout(K)
+cmap = cm.get_cmap('viridis', max(K.values()) + 1)
+nx.draw_networkx_nodes(G, pos, K.keys(), node_size=800,
+                       cmap=cmap, node_color=list(K.values()), label = True)
+nx.draw_networkx_edges(G, pos, alpha=0.5)
+# print('Labels: ', list(K.keys()))
+# labels = 
+nx.draw_networkx_labels(G, pos, K, font_size=22, font_color="whitesmoke")
+plt.show()

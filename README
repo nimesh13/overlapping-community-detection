@@ -1,1 +1,5 @@
 Overlapping community detection using link clustering algorithm
+
+`pip install python-louvain`
+`pip install numpy`
+`pip install matplotlib`
