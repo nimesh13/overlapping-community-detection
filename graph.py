@@ -62,7 +62,9 @@ def createLineGraph(graph, matrix, edgeIdMatrix):
             nodeB = adjCombList[comb][1]
 
             nodeA_and_neighbors, nodeB_and_neighbors = getNodes(graph, nodeA, nodeB)
+            nodeA_and_neighbors.append(nodeA)
             nodeA_and_neighbors.append(nodeHub)
+            nodeB_and_neighbors.append(nodeB)
             nodeB_and_neighbors.append(nodeHub)
 
             similarity = findSimilarity(nodeA_and_neighbors, nodeB_and_neighbors)
@@ -71,17 +73,6 @@ def createLineGraph(graph, matrix, edgeIdMatrix):
 
             line_graph[nodeA_id][nodeB_id] = similarity
             line_graph[nodeB_id][nodeA_id] = similarity
-
-
-        #for j in range(0, i):
-        #    if matrix[i][j] == 1:
-        #        row, column = getNodes(graph, i + 1, j + 1)
-                #print(i+1,row, j+1,column)
-
-        #       similarity = findSimilarity(row, column)
-
-        #        line_graph[i][j] = similarity
-        #        line_graph[j][i] = similarity
 
     return line_graph
 
@@ -116,6 +107,27 @@ def getAdjCombinationOf2(graph, hubNode):
                     result.append(comb)
             break
     return result
+
+def getCommunityById(edgeIdMatrix , allCommunityDict, communityId):
+    lineNode = []
+
+    for key, val in allCommunityDict.items():
+        if int(val) == int(communityId):
+            lineNode.append(key)
+
+    numNodes = len(edgeIdMatrix)
+    communityMatrix = [[0]*numNodes for i in range(numNodes)]
+
+    for i in range(0, numNodes):
+        for j in range(i, numNodes):
+            for lineId in lineNode:
+                if edgeIdMatrix[i][j] == lineId:
+                    communityMatrix[i][j] = 1
+                    communityMatrix[j][i] = 1
+
+    return communityMatrix
+
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument(dest='filename', help="Filename of the dataset containing the graph")
@@ -157,6 +169,23 @@ print("The modularity Q based on networkx is {}".format(modularity2))
 
 print('---------------')
 print(K)
+
+print()
+print("community 0 matrx")
+community0 = getCommunityById(edgeIdMx, K, 0)
+for row in community0:
+    print(row)
+
+print("community 1 matrx")
+community1 = getCommunityById(edgeIdMx, K, 1)
+for row in community1:
+    print(row)
+
+print("community 2 matrx")
+community2 = getCommunityById(edgeIdMx, K, 2)
+for row in community2:
+    print(row)
+
 
 pos = nx.spring_layout(K)
 cmap = cm.get_cmap('viridis', max(K.values()) + 1)
