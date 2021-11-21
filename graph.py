@@ -93,10 +93,11 @@ def getAdjCombinationOf2(nodeList):
             if (nodeList[i] < nodeList[j]):
                 comb.append(nodeList[i])
                 comb.append(nodeList[j])
+                result.append(comb)
             elif (nodeList[j] < nodeList[i]):
                 comb.append(nodeList[j])
                 comb.append(nodeList[i])
-            result.append(comb)
+                result.append(comb)
     return result
 
 parser = argparse.ArgumentParser()
@@ -114,16 +115,17 @@ for node in graph:
     print("%s -> %s" % (node[0], node[1]))
 
 lineDirectory, revertLineDirectory = createLineDict(graph)
-for i in lineDirectory:
-    print(i, lineDirectory[i])
-for i in revertLineDirectory:
-    print(i, revertLineDirectory[i])
+#for i in lineDirectory:
+#    print(i, lineDirectory[i])
+#for i in revertLineDirectory:
+#    print(i, revertLineDirectory[i])
 
 line_graph = createLineGraph(graph, lineDirectory, revertLineDirectory)
 print('\nThe line graph adjacency matrix with weights as similarity is: \n')
-for entry in range(0, len(line_graph)):
-    print(line_graph[entry])
+#for entry in range(0, len(line_graph)):
+#    print(line_graph[entry])
 
+print(py.matrix(line_graph))
 G = nx.Graph(py.matrix(line_graph))
 print('************')
 print(G)
