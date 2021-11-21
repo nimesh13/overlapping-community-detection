@@ -44,7 +44,7 @@ def createLineGraph(graph, lineDict, revertLineDict):
     num_lines = len(lineDict)
     num_nodes = len(graph)
 
-    line_graph = [[0] * num_lines for i in range(num_lines)]
+    line_graph = py.zeros(shape=(num_lines, num_lines), dtype=py.float32)
 
     for entry in graph:
         nodeHub = int(entry[0])
@@ -123,10 +123,7 @@ lineDirectory, revertLineDirectory = createLineDict(graph)
 
 line_graph = createLineGraph(graph, lineDirectory, revertLineDirectory)
 print('\nThe line graph adjacency matrix with weights as similarity is: \n')
-#for entry in range(0, len(line_graph)):
-#    print(line_graph[entry])
 
-# print(py.matrix(line_graph))
 G = nx.Graph(py.matrix(line_graph))
 
 communities = community_louvain.best_partition(G, weight='weight')
