@@ -10,52 +10,43 @@ def project(filename, delimiter=' ', nodeType=int):
     graph = defaultdict(list)
     for line in open(filename, 'U'):
         L = line.strip().split(delimiter)
-        graph[L[0]].append(L[1])
-        graph[L[1]].append(L[0])
+        graph[int(L[0])].append(int(L[1]))
+        graph[int(L[1])].append(int(L[0]))
 
     return sorted(graph.items())
 
-def createAdjacencyMatrix(graph):
+def createLineDict(graphDict):
+    lineDict = {}
+    revertLineDict = {}
+    lineId = 0;
+    for entry in graphDict:
+        for item in entry[1]:
+            left = 0
+            right = 0
+            if (entry[0] < item):
+                left = entry[0]
+                right = item
+            elif (item < entry[0]):
+                left = item
+                right = entry[0]
 
-    matrix = []
+            if revertLineDict.get((left, right)) == None:
+                lineDict[lineId] = (left, right)
+                revertLineDict[(left, right)] = lineId
+                lineId += 1
+
+    return lineDict, revertLineDict
+
+def createLineGraph(graph, lineDict, revertLineDict):
+
+    num_lines = len(lineDict)
     num_nodes = len(graph)
-    for vertices in graph:
-        list = [0] * num_nodes
-        for vertex in vertices[1]:
-            vert = int(vertex) - 1
-            list[vert] = 1
-
-        matrix.append(list)
-
-    return matrix
-
-def createEdgeIdMatrix(matrix):
-    counter = 0
-    numNodes = len(matrix)
-    edgeIdMatrix = [[-1]*numNodes for i in range(numNodes)]
-
-    for i in range(0, numNodes):
-        for j in range(i, numNodes):
-            if matrix[i][j] == 1 :
-                edgeIdMatrix[i][j] = counter
-                edgeIdMatrix[j][i] = counter
-                counter = counter + 1
-    return edgeIdMatrix
-
-def createLineGraph(graph, matrix, edgeIdMatrix):
-
-    num_nodes = len(matrix)
-    num_lines = 0
-    for i in range(0, num_nodes):
-        for j in range(0, i):
-            if matrix[i][j] == 1:
-                num_lines += 1
 
     line_graph = [[0] * num_lines for i in range(num_lines)]
 
-    for i in range(0, num_nodes):
-        nodeHub = i + 1
-        adjCombList = getAdjCombinationOf2(graph, nodeHub)
+    for entry in graph:
+        nodeHub = int(entry[0])
+        adjCombList = getAdjCombinationOf2(entry[1])
 
         for comb in range(0, len(adjCombList)):
             nodeA = adjCombList[comb][0]
@@ -63,16 +54,16 @@ def createLineGraph(graph, matrix, edgeIdMatrix):
 
             nodeA_and_neighbors, nodeB_and_neighbors = getNodes(graph, nodeA, nodeB)
             nodeA_and_neighbors.append(nodeA)
-            nodeA_and_neighbors.append(nodeHub)
             nodeB_and_neighbors.append(nodeB)
-            nodeB_and_neighbors.append(nodeHub)
+
+            #print(nodeHub, ":", nodeA ,nodeA_and_neighbors, "," ,nodeB ,nodeB_and_neighbors)
 
             similarity = findSimilarity(nodeA_and_neighbors, nodeB_and_neighbors)
-            nodeA_id = edgeIdMatrix[nodeHub-1][nodeA-1]
-            nodeB_id = edgeIdMatrix[nodeHub-1][nodeB-1]
+            lineA_id = revertLineDict[(nodeHub, nodeA)] if nodeHub < nodeA else revertLineDict[(nodeA, nodeHub)] 
+            lineB_id = revertLineDict[(nodeHub, nodeB)] if nodeHub < nodeB else revertLineDict[(nodeB, nodeHub)]   
 
-            line_graph[nodeA_id][nodeB_id] = similarity
-            line_graph[nodeB_id][nodeA_id] = similarity
+            line_graph[lineA_id][lineB_id] = similarity
+            line_graph[lineB_id][lineA_id] = similarity
 
     return line_graph
 
@@ -83,51 +74,30 @@ def findSimilarity(nodeA, nodeB):
     return S
 
 def getNodes(graph, nodeA, nodeB):
-    valA = [item[1] for item in graph if item[0] == str(nodeA)]
-    valB = [item[1] for item in graph if item[0] == str(nodeB)]
+    valA = [item[1] for item in graph if item[0] == nodeA]
+    valB = [item[1] for item in graph if item[0] == nodeB]
     adjA = valA[0][:]
     adjB = valB[0][:]
     return adjA, adjB
 
-def getAdjCombinationOf2(graph, hubNode):
+def getAdjCombinationOf2(nodeList):
     # Find the edge that shared the same node to compare.
     # For example, edge u->v and edge s->v shared the same node, then v is acted as the hub node
     # This function wants to find all combinations of 2 nodes (u and s) that are adjacent to hub node (v)
     # to represents the combinations of two edges.
     result = []
-
-    for item in graph:
-        if item[0] == str(hubNode):
-            adjNum = len(item[1])
-            for i in range(0, adjNum-1):
-                for j in range(i+1, adjNum):
-                    comb = []
-                    comb.append(int(item[1][i]))
-                    comb.append(int(item[1][j]))
-                    result.append(comb)
-            break
+    numNodes = len(nodeList)
+    for i in range (0, numNodes-1):
+        for j in range(i+1, numNodes):
+            comb = []
+            if (nodeList[i] < nodeList[j]):
+                comb.append(nodeList[i])
+                comb.append(nodeList[j])
+            elif (nodeList[j] < nodeList[i]):
+                comb.append(nodeList[j])
+                comb.append(nodeList[i])
+            result.append(comb)
     return result
-
-def getCommunityById(edgeIdMatrix , allCommunityDict, communityId):
-    lineNode = []
-
-    for key, val in allCommunityDict.items():
-        if int(val) == int(communityId):
-            lineNode.append(key)
-
-    numNodes = len(edgeIdMatrix)
-    communityMatrix = [[0]*numNodes for i in range(numNodes)]
-
-    for i in range(0, numNodes):
-        for j in range(i, numNodes):
-            for lineId in lineNode:
-                if edgeIdMatrix[i][j] == lineId:
-                    communityMatrix[i][j] = 1
-                    communityMatrix[j][i] = 1
-
-    return communityMatrix
-
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument(dest='filename', help="Filename of the dataset containing the graph")
@@ -143,25 +113,20 @@ print('\nThe nodes with their neighbours are: \n')
 for node in graph:
     print("%s -> %s" % (node[0], node[1]))
 
-matrix = createAdjacencyMatrix(graph)
-print('\nThe corresponding adjacency matrix is: \n')
-for entry in range(0, len(matrix)):
-    print(matrix[entry])
+lineDirectory, revertLineDirectory = createLineDict(graph)
+for i in lineDirectory:
+    print(i, lineDirectory[i])
+for i in revertLineDirectory:
+    print(i, revertLineDirectory[i])
 
-edgeIdMx = createEdgeIdMatrix(matrix)
-print('\nThe edge ID adjacency matrix is: \n')
-for entry in range(0, len(edgeIdMx)):
-    print(edgeIdMx[entry])
-
-line_graph = createLineGraph(graph, matrix, edgeIdMx)
+line_graph = createLineGraph(graph, lineDirectory, revertLineDirectory)
 print('\nThe line graph adjacency matrix with weights as similarity is: \n')
 for entry in range(0, len(line_graph)):
     print(line_graph[entry])
 
-# print(line_graph)
 G = nx.Graph(py.matrix(line_graph))
 print('************')
-# print(G)
+print(G)
 
 K = community_louvain.best_partition(G, weight='weight')
 modularity2 = community_louvain .modularity(K, G, weight='weight')
@@ -169,23 +134,6 @@ print("The modularity Q based on networkx is {}".format(modularity2))
 
 print('---------------')
 print(K)
-
-print()
-print("community 0 matrx")
-community0 = getCommunityById(edgeIdMx, K, 0)
-for row in community0:
-    print(row)
-
-print("community 1 matrx")
-community1 = getCommunityById(edgeIdMx, K, 1)
-for row in community1:
-    print(row)
-
-print("community 2 matrx")
-community2 = getCommunityById(edgeIdMx, K, 2)
-for row in community2:
-    print(row)
-
 
 pos = nx.spring_layout(K)
 cmap = cm.get_cmap('viridis', max(K.values()) + 1)
