@@ -1,5 +1,6 @@
 from collections import defaultdict
 import argparse
+from os import PRIO_USER
 import community as community_louvain
 import networkx as nx
 import numpy as py
@@ -8,17 +9,18 @@ import matplotlib.pyplot as plt
 
 def project(filename, delimiter=' ', nodeType=int):
     graph = defaultdict(list)
-    for line in open(filename, 'U'):
+    for line in open(filename):
         L = line.strip().split(delimiter)
-        graph[int(L[0])].append(int(L[1]))
-        graph[int(L[1])].append(int(L[0]))
+        if int(L[1]) not in graph[int(L[0])] and L[0] != L[1]:
+            graph[int(L[0])].append(int(L[1]))
+            graph[int(L[1])].append(int(L[0]))
 
     return sorted(graph.items())
 
 def createLineDict(graphDict):
     lineDict = {}
     revertLineDict = {}
-    lineId = 0;
+    lineId = 0
     for entry in graphDict:
         for item in entry[1]:
             left = 0
@@ -105,7 +107,6 @@ parser.add_argument(dest='filename', help="Filename of the dataset containing th
 
 # Parse and print the results
 filename = parser.parse_args().filename
-# print(filename)
 
 number_of_vertices = 0
 
@@ -125,24 +126,44 @@ print('\nThe line graph adjacency matrix with weights as similarity is: \n')
 #for entry in range(0, len(line_graph)):
 #    print(line_graph[entry])
 
-print(py.matrix(line_graph))
+# print(py.matrix(line_graph))
 G = nx.Graph(py.matrix(line_graph))
-print('************')
-print(G)
 
-K = community_louvain.best_partition(G, weight='weight')
-modularity2 = community_louvain .modularity(K, G, weight='weight')
+communities = community_louvain.best_partition(G, weight='weight')
+modularity2 = community_louvain .modularity(communities, G, weight='weight')
+
 print("The modularity Q based on networkx is {}".format(modularity2))
 
-print('---------------')
-print(K)
+distinct_communities = set(communities.values())
 
-pos = nx.spring_layout(K)
-cmap = cm.get_cmap('viridis', max(K.values()) + 1)
-nx.draw_networkx_nodes(G, pos, K.keys(), node_size=800,
-                       cmap=cmap, node_color=list(K.values()), label = True)
-nx.draw_networkx_edges(G, pos, alpha=0.5)
-# print('Labels: ', list(K.keys()))
-# labels = 
-nx.draw_networkx_labels(G, pos, K, font_size=22, font_color="whitesmoke")
-plt.show()
+print('The number of distinct communities found in the graph is {}'.format(len(distinct_communities)))
+
+original_graph = defaultdict(list)
+
+for key in communities:
+    community = communities[key]
+    edge = lineDirectory[key]
+
+    if community not in original_graph[edge[0]]:
+        original_graph[edge[0]].append(community)
+    if community not in original_graph[edge[1]]:
+        original_graph[edge[1]].append(community)
+
+original_graph = sorted(original_graph.items())
+
+for node in original_graph:
+    print("%s -> %s" % (node[0], sorted(node[1])))
+
+# for node in original_graph:
+#     print("%d-> %d" % (node[0], node[1]))
+# pos = nx.spring_layout(K)
+# cmap = cm.get_cmap('viridis', max(K.values()) + 1)
+# nx.draw_networkx_nodes(G, pos, K.keys(), node_size=4,
+#                        cmap=cmap, node_color=list(K.values()), label = True)
+# nx.draw_networkx_edges(G, pos, alpha=0.5)
+# # print('Labels: ', list(K.keys()))
+# # labels = 
+# # nx.draw_networkx_labels(G, pos, K, font_size=22, font_color="whitesmoke")
+# plt.show()
+
+
