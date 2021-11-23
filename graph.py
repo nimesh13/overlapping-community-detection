@@ -102,6 +102,57 @@ def getAdjCombinationOf2(nodeList):
                 result.append(comb)
     return result
 
+def partition_density(communityId, communities, nodes_belongs_to):
+    m_c = 0.0
+    for key in communities:
+        if communities[key] == communityId:
+            m_c += 1.0
+
+    n_c = 0.0
+    for entry in nodes_belongs_to:
+        for item in entry[1]:
+            if item == communityId:
+                n_c += 1.0
+
+
+    denom = (((n_c*(n_c-1.0))/2.0) - (n_c-1.0))
+    if denom > 0:
+        Dc = (m_c - (n_c - 1.0))/denom
+        print("partition densitiy of community[%d] is  %f" % (communityId,Dc))
+    else:
+        print("partition densitiy of community[%d] is none" % communityId)
+
+
+def average_partition_density(communities, distinct_com, nodes_belongs_to):
+    numCom = len(distinct_com)
+    numLink = len(communities)
+    m_c = {}
+    n_c = {}
+    for key in communities:
+        comId = communities[key]
+        m_c[comId] = 0.0
+        n_c[comId] = 0.0
+
+    for key in communities:
+        comId = communities[key]
+        linkC = m_c[comId]
+        m_c[comId] = linkC + 1.0
+
+    for entry in nodes_belongs_to:
+        for item in entry[1]:
+            nodeC = n_c[item]
+            n_c[item] = nodeC + 1.0
+
+    sum = 0.0
+    for i in range(0, numCom):
+        denom = ((n_c[i]-2.0)*(n_c[i]-1.0))
+        if denom > 0:
+            sum += m_c[i]*((m_c[i] - (n_c[i] - 1.0))/denom)
+    
+    D = (2.0/numLink)*sum
+    print("Average Partition density is", D)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument(dest='filename', help="Filename of the dataset containing the graph")
 
@@ -150,6 +201,12 @@ original_graph = sorted(original_graph.items())
 
 for node in original_graph:
     print("%s -> %s" % (node[0], sorted(node[1])))
+
+for i in range(0, len(distinct_communities)):
+    partition_density(i, communities, original_graph)
+
+average_partition_density(communities, distinct_communities, original_graph)
+
 
 # for node in original_graph:
 #     print("%d-> %d" % (node[0], node[1]))
